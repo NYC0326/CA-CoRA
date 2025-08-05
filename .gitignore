@@ -1,0 +1,7 @@
+# .gitignore for Python projects including virtual environments and backbone files
+/CoRA
+/venv
+ProjectReport.pdf
+/dataset/amazon_book/Books_5.json.gz
+/dataset/amazon_book/meta_Books.json.gz
+/dataset/ml-1m/ml-1m
