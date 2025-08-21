@@ -8,9 +8,8 @@ import torch.nn as nn
 import torch.optim
 from sklearn.metrics import roc_auc_score
 from torch.utils.data.dataloader import DataLoader
-
 from minigpt4.models.rec_model import MatrixFactorization
-
+from tqdm import tqdm
 
 def uAUC_me(user, predict, label):
     if not isinstance(predict, np.ndarray):
@@ -131,17 +130,6 @@ def run_a_trail(train_config, log_file=None, save_mode=False, save_file=None, ne
     user_num = max(train_data[:, 0].max(), valid_data[:, 0].max(), test_data[:, 0].max()) + 1
     item_num = max(train_data[:, 1].max(), valid_data[:, 1].max(), test_data[:, 1].max()) + 1
 
-    # if warm_or_cold is not None:
-    #     if warm_or_cold == 'warm':
-    #         test_data = pd.read_pickle(data_dir+"test_ood2.pkl")[['uid','iid','label', 'not_cold']]
-    #         test_data = test_data[test_data['not_cold'].isin([1])][['uid','iid','label']].values
-    #         print("warm data size:", test_data.shape[0])
-    #         # pass
-    #     else:
-    #         test_data = pd.read_pickle(data_dir+"test_ood2.pkl")[['uid','iid','label', 'not_cold']]
-    #         test_data = test_data[test_data['not_cold'].isin([0])][['uid','iid','label']].values
-    #         print("cold data size:", test_data.shape[0])
-    #         # pass
     if warm_or_cold is not None:
         if warm_or_cold == 'warm':
             test_data = pd.read_pickle(data_dir + "test_ood2.pkl")[['uid', 'iid', 'label', 'not_cold']]
@@ -210,9 +198,9 @@ def run_a_trail(train_config, log_file=None, save_mode=False, save_file=None, ne
                                                                                        test_uauc, val_acc))
         return
 
-    for epoch in range(train_config['epoch']):
+    for epoch in tqdm(range(train_config['epoch']), desc="Training Epochs"):
         model.train()
-        for bacth_id, batch_data in enumerate(train_data_loader):
+        for bacth_id, batch_data in enumerate(tqdm(train_data_loader, desc=f"Epoch {epoch+1}", leave=False)):
             batch_data = batch_data.cuda()
             ui_matching = model(batch_data[:, 0].long(), batch_data[:, 1].long())
             loss = criterion(ui_matching, batch_data[:, -1].float())
@@ -266,82 +254,14 @@ def run_a_trail(train_config, log_file=None, save_mode=False, save_file=None, ne
         print("train_config:", train_config, "best result:", early_stop.best_metric, file=log_file)
         log_file.flush()
 
-
-# if __name__=='__main__':
-#     # lr_ = [1e-1,1e-2,1e-3]
-#     lr_=[1e-1]
-#     dw_ = [1e-2,1e-3,1e-4,1e-5,1e-6,1e-7]
-#     # embedding_size_ = [32, 64, 128, 156, 512]
-#     embedding_size_ = [64,128,256]
-#     try:
-#         f = open("0913ml1m-ood-v2-rec_mf_search_lr"+str(lr_[0])+".log",'rw+')
-#     except:
-#         f = open("0913ml1m-ood-v2-rec_mf_search_lr"+str(lr_[0])+".log",'w+')
-#     for lr in lr_:
-#         for wd in dw_:
-#             for embedding_size in embedding_size_:
-#                 train_config={
-#                     'lr': lr,
-#                     'wd': wd,
-#                     'embedding_size': embedding_size,
-#                     "epoch": 5000,
-#                     "eval_epoch":1,
-#                     "patience":100,
-#                     "batch_size":2048
-#                 }
-#                 print(train_config)
-#                 run_a_trail(train_config=train_config, log_file=f, save_mode=False)
-#     f.close()
-
-
-# {'lr': 0.001, 'wd': 0.0001, 'embedding_size': 256, 'epoch': 5000, 'eval_epoch': 1, 'patience': 100, 'batch_size': 2048},
-#  {'valid_auc': 0.6760080227104877, 'valid_uauc': 0.6191863368703151, 'test_auc': 0.6482002627476354, 'test_uauc': 0.636100123360848, 'epoch': 465}
-# save version....
-# if __name__=='__main__':
-#     # lr_ = [1e-1,1e-2,1e-3]
-#     lr_=[1e-3] #1e-2
-#     dw_ = [1e-4]
-#     # embedding_size_ = [32, 64, 128, 156, 512]
-#     embedding_size_ = [256]
-#     save_path = "/data/zyang/LLM/PretrainedModels/mf/"
-#     # save_path = "/home/sist/zyang/LLM/PretrainedModels/mf/"
-#     # try:
-#     #     f = open("rec_mf_search_lr"+str(lr_[0])+".log",'rw+')
-#     # except:
-#     #     f = open("rec_mf_search_lr"+str(lr_[0])+".log",'w+')
-#     f=None
-#     for lr in lr_:
-#         for wd in dw_:
-#             for embedding_size in embedding_size_:
-#                 train_config={
-#                     'lr': lr,
-#                     'wd': wd,
-#                     'embedding_size': embedding_size,
-#                     "epoch": 5000,
-#                     "eval_epoch":1,
-#                     "patience":100,
-#                     "batch_size":2048
-#                 }
-#                 print(train_config)
-#                 save_path += "0912_ml1m_oodv2_best_model_d" + str(embedding_size)+ 'lr-'+ str(lr) + "wd"+str(wd) + ".pth"
-#                 print("save path: ", save_path)
-#                 run_a_trail(train_config=train_config, log_file=f, save_mode=True,save_file=save_path)
-#     f.close()
-
-
 #### /data/zyang/LLM/PretrainedModels/mf/best_model_d128.pth
 # with prtrain version:
 if __name__ == '__main__':
     # lr_ = [1e-1,1e-2,1e-3]
     lr_ = [1e-1, 1e-2, 1e-3]  # 1e-2
     dw_ = [1e-2, 1e-4, 1e-6]
-    # embedding_size_ = [32, 64, 128, 156, 512]
     embedding_size_ = [256]
     save_path = "pretrained/mf/"
-    # try:
-    #     f = open("rec_mf_search_lr"+str(lr_[0])+".log",'rw+')
-    # except:
-    #     f = open("rec_mf_search_lr"+str(lr_[0])+".log",'w+')
     f = None
     for lr in lr_:
         for wd in dw_:
@@ -356,14 +276,8 @@ if __name__ == '__main__':
                     "batch_size": 1024
                 }
                 print(train_config)
-                save_path = "/data0/liuyuting/CoLLM/pretrained/mf/ml_lr0.001_wd0.0001_best.pth"
-                # save_path = "pretrained/mf/ml_lr{0}_wd{1}.pth".format(lr, wd)
+                save_path = "pretrained/mf/ml_lr0.001_wd0.0001_best.pth"
                 f = open("pretrained/mf/ml_lr{0}_wd{1}.log".format(lr, wd), 'w+')
-                # if os.path.exists(save_path + "0912_ml100k_oodv2_best_model_d" + str(embedding_size)+ 'lr-'+ str(lr) + "wd"+str(wd) + ".pth"):
-                #     save_path += "0912_ml100k_oodv2_best_model_d" + str(embedding_size)+ 'lr-'+ str(lr) + "wd"+str(wd) + ".pth"
-                #     print(save_path)
-                # else:
-                #     save_path += "best_model_d" + str(embedding_size) + ".pth"
 
                 run_a_trail(train_config=train_config, log_file=f, save_mode=True, save_file=save_path,
                             need_train=False, warm_or_cold='warm')
