@@ -31,7 +31,7 @@ CA-CoRA/
 
 ### 1. 환경 설정
 
-프로젝트에 필요한 모든 라이브러리가 설치되었는지 확인하세요. `requirements.txt` 파일을 사용하여 종속성을 관리할 수 있습니다.
+`requirements.txt` 파일을 사용하여 종속성을 관리할 수 있습니다.
 
 ```bash
 # 예시: pip install -r requirements.txt
@@ -40,17 +40,6 @@ CA-CoRA/
 ### 2. 데이터 준비
 
 `dataset/` 디렉토리 내의 스크립트와 노트북을 참고하여 데이터를 전처리하고 프로젝트에 적합한 형식으로 준비합니다.
-
-### 3. 모델 학습
-
-모델을 학습시키려면 해당 학습 스크립트를 실행하면 됩니다. 파라미터를 지정하기 위해 설정 파일을 사용하는 것을 권장합니다.
-
-```bash
-# 모델 학습 예시 명령어
-python your_training_script.py --config your_model_config.yaml
-```
-
-`CoRA/train_configs` 디렉토리의 `yaml` 파일을 수정하거나 새 파일을 만들어 다양한 모델과 데이터셋으로 실험할 수 있습니다.
 
 ## 향후 계획
 
